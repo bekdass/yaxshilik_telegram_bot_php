@@ -1,0 +1,30 @@
+# Telegram Bot .htaccess Configuration
+
+# Deny access to sensitive files
+<FilesMatch "^(config\.php|database\.sqlite|updates\.log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# PHP settings
+php_flag display_errors Off
+php_flag log_errors On
+php_value error_log error.log
+
+# Enable rewrite engine
+RewriteEngine On
+
+# Force HTTPS (recommended for Telegram webhooks)
+# Uncomment if you have SSL certificate
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Set default charset
+AddDefaultCharset UTF-8
+
+# Disable directory listing
+Options -Indexes
+
+# Set timeout for long requests
+php_value max_execution_time 60
+php_value max_input_time 60

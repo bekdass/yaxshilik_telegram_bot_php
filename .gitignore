@@ -1,0 +1,20 @@
+# Token va parollar
+config.php
+
+# Ma'lumotlar bazasi
+database.sqlite
+*.db
+*.sqlite
+
+# Loglar
+*.log
+error.log
+cron.log
+updates.log
+
+# Tizim fayllari
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+vendor/
