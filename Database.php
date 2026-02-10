@@ -53,7 +53,7 @@ class Database {
     /**
      * Foydalanuvchini saqlash (Laravel jadvali + POINT)
      */
-   public function addUser($chatId, $firstName = null, $lastName = null, $username = null, $lat = null, $lon = null) {
+   public function addUser($chatId, $firstName = null, $username = null, $lat = null, $lon = null) {
         if (!$this->pdo) return false;
 
         if ($this->driver === 'mysql') {

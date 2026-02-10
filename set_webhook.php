@@ -9,7 +9,7 @@ require_once __DIR__ . '/config.php';
 
 // 1. Webhook manzilingizni shu yerga yozing!
 // Masalan: 'https://sizning-sayt.uz/bot-papka/index.php'
-$webhookUrl = 'https://yourdomain.com/index.php'; 
+$webhookUrl = 'https://musbat.uz/telegram_botlar/harkunyaxshilik-bot/index.php'; 
 
 // Agar URL o'zgartirilmagan bo'lsa, ogohlantiramiz
 if ($webhookUrl === 'https://yourdomain.com/index.php') {

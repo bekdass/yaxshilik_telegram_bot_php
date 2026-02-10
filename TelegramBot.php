@@ -34,12 +34,11 @@ class TelegramBot {
         $messageId = $message['message_id'];
         
         $firstName = $message['from']['first_name'] ?? null;
-        $lastName = $message['from']['last_name'] ?? null;
         $username = $message['from']['username'] ?? null;
         
         // --- 1. LOKATSIYA KELSA ---
         if (isset($message['location'])) {
-            $this->handleLocationUpdate($message, $chatId, $userId, $firstName, $lastName, $username);
+            $this->handleLocationUpdate($message, $chatId, $userId, $firstName, $username);
             return;
         }
         
@@ -60,7 +59,7 @@ class TelegramBot {
                 }
 
                 $isStart = ($text === '/start');
-                $this->handleUserRequest($chatId, $userId, $firstName, $lastName, $username, $isStart);
+                $this->handleUserRequest($chatId, $userId, $firstName, $username, $isStart);
                 $this->telegram->deleteMessage($chatId, $messageId);
                 return;
             }
@@ -68,7 +67,7 @@ class TelegramBot {
             // B) SHAHAR NOMI (Cities.php dan tekshiramiz)
             // Cities::$islomUzIds kalitlari ichidan qidiramiz (toshkent, andijon...)
             if (array_key_exists($textLower, Cities::$islomUzIds)) {
-                $this->sendPrayerTimes($chatId, $userId, $firstName, $lastName, $username, $textLower);
+                $this->sendPrayerTimes($chatId, $userId, $firstName, $username, $textLower);
                 $this->telegram->deleteMessage($chatId, $messageId);
                 return;
             }
@@ -77,7 +76,7 @@ class TelegramBot {
             // Bu ham kerak, chunki user "Toshkent" deb yozishi mumkin
             foreach (Cities::$citysNames as $slug => $name) {
                 if (mb_strtolower($name, 'UTF-8') === $textLower) {
-                    $this->sendPrayerTimes($chatId, $userId, $firstName, $lastName, $username, $slug);
+                    $this->sendPrayerTimes($chatId, $userId, $firstName, $username, $slug);
                     $this->telegram->deleteMessage($chatId, $messageId);
                     return;
                 }
@@ -90,7 +89,7 @@ class TelegramBot {
     
     // ... QOLGAN FUNKSIYALAR O'ZGARISHSIZ ...
     
-    private function handleUserRequest($chatId, $userId, $firstName, $lastName, $username, $isStart) {
+    private function handleUserRequest($chatId, $userId, $firstName, $username, $isStart) {
         $user = $this->db->getUser($userId);
         $citySlug = 'toshkent';
 
@@ -98,7 +97,7 @@ class TelegramBot {
             $cityData = $this->locationService->findNearestCity($user['lat'], $user['lon']);
             $citySlug = $cityData['city'];
         } else {
-            $this->db->addUser($userId, $firstName, $lastName, $username, 41.2995, 69.2401);
+            $this->db->addUser($userId, $firstName, $username, 41.2995, 69.2401);
             $citySlug = 'toshkent';
         }
 
@@ -108,25 +107,25 @@ class TelegramBot {
             $this->telegram->sendMessage($chatId, $msg, 'HTML', $kb);
         }
 
-        $this->sendPrayerTimes($chatId, $userId, $firstName, $lastName, $username, $citySlug);
+        $this->sendPrayerTimes($chatId, $userId, $firstName, $username, $citySlug);
     }
     
-    private function handleLocationUpdate($message, $chatId, $userId, $firstName, $lastName, $username) {
+    private function handleLocationUpdate($message, $chatId, $userId, $firstName, $username) {
         $lat = $message['location']['latitude'];
         $lon = $message['location']['longitude'];
-        $this->db->addUser($userId, $firstName, $lastName, $username, $lat, $lon);
+        $this->db->addUser($userId, $firstName, $username, $lat, $lon);
         $result = $this->locationService->findNearestCity($lat, $lon);
-        $this->sendPrayerTimes($chatId, $userId, $firstName, $lastName, $username, $result['city']);
+        $this->sendPrayerTimes($chatId, $userId, $firstName, $username, $result['city']);
     }
     
-    private function sendPrayerTimes($chatId, $userId, $firstName, $lastName, $username, $citySlug) {
+    public function sendPrayerTimes($chatId, $userId, $firstName, $username, $citySlug) {
         $todayStr = date('Y-m-d');
         if (!$this->db->checkLimit($userId, $todayStr)) {
             $this->telegram->sendMessage($chatId, "⛔️ Limit tugadi!");
             return;
         }
         
-        $this->db->addUser($userId, $firstName, $lastName, $username);
+        $this->db->addUser($userId, $firstName, $username);
         $data = $this->prayerService->getPrayerTimes($citySlug);
         
         if (!$data) {

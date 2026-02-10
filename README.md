@@ -79,6 +79,7 @@ Yoki set_webhook.php skriptidan foydalaning.🗄 Ma'lumotlar Bazasi Tuzilishi (S
 📄 Litsenziya va Mualliflik HuquqiUshbu loyiha Apache License 2.0 ostida tarqatilmoqda.Litsenziya Shartlari:Siz ushbu koddan nusxa olishingiz, o'zgartirishingiz va tarqatishingiz mumkin, lekin quyidagi shartlarga amal qilishingiz kerak:Mualliflikni ko'rsatish: Dasturning asl nusxasi yoki o'zgartirilgan versiyasida ushbu litsenziya matni va mualliflik huquqi (Copyright) saqlanib qolishi shart.Javobgarlik: Dastur "boricha" (AS IS) taqdim etiladi. Muallif foydalanish natijasida kelib chiqadigan har qanday zarar uchun javobgar emas.Mualliflik Huquqi (Copyright):Ushbu loyiha Ulugbek Nematullayev tomonidan ishlab chiqilgan va Python versiyasidan PHP tiliga o'girilgan (ported).Copyright © 2026 Ulugbek Nematullayev (@bekdass)Loyiha O'zbekiston musulmonlari uchun qulaylik yaratish maqsadida ishlab chiqildi.
 
 
+
 # Telegram Prayer Times Bot (PHP Version)
 
 This is a complete PHP port of the Python Telegram bot for Uzbekistan prayer times.

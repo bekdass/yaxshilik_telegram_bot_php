@@ -61,7 +61,6 @@ foreach ($users as $user) {
         $chatId, 
         $chatId, // userId o'rniga chatId ketaveradi
         $name, 
-        '', 
         $user['username'], 
         $citySlug
     );
