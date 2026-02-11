@@ -69,51 +69,63 @@ class PrayerService {
     }
 
     private function fetchMuslimUz($citySlug) {
-        if ($citySlug !== 'toshkent') return null;
+    if ($citySlug !== 'toshkent') return null;
 
-        $html = $this->fetchUrl("https://muslim.uz/uz", false);
-        if (!$html) return null;
-        
-        $dom = new DOMDocument();
-        @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
-        $xpath = new DOMXPath($dom);
-        
-        $times = [];
-        $mapping = ["Tong" => "bomdod", "Quyosh" => "quyosh", "Peshin" => "peshin", "Asr" => "asr", "Shom" => "shom", "Xufton" => "hufton"];
-        
-        $rows = $xpath->query("//div[@id='prayer']//div[contains(@class, 'flex-column')]");
-        foreach ($rows as $row) {
-            $divs = $xpath->query(".//div", $row);
-            if ($divs->length >= 2) {
-                $label = trim($divs->item(0)->textContent);
-                $time = trim($divs->item(1)->textContent);
-                if (isset($mapping[$label])) $times[$mapping[$label]] = $time;
-            }
-        }
-        
-        $sanaHijriy = "";
-        $dateDiv = $xpath->query("//div[contains(@class, 'black-top-panel-dates')]")->item(0);
-        if ($dateDiv) {
-            $parts = explode('|', trim($dateDiv->textContent));
-            if (count($parts) >= 2) $sanaHijriy = $this->cleanTextLatin(trim($parts[1]));
-        }
-        
-        if (isset($times['bomdod'])) {
-            return [
-                'manba' => 'Muslim.uz',
-                'sana_hijriy' => $sanaHijriy,
-                'hudud' => $this->getCityDisplayName($citySlug), // <-- O'ZGARDI
-                'bomdod' => $times['bomdod'],
-                'quyosh' => $times['quyosh'] ?? '',
-                'peshin' => $times['peshin'] ?? '',
-                'asr' => $times['asr'] ?? '',
-                'shom' => $times['shom'] ?? '',
-                'hufton' => $times['hufton'] ?? ''
-            ];
-        }
+    $html = $this->fetchUrl("https://muslim.uz/uz", false);
+    if (!$html) return null;
+    
+    $dom = new DOMDocument();
+    @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+    $xpath = new DOMXPath($dom);
+    
+    // --- YANGI: SANA TEKSHIRUVI ---
+    $dateDiv = $xpath->query("//div[contains(@class, 'black-top-panel-dates')]")->item(0);
+    if (!$dateDiv) return null; // Sana topilmasa, xavf olish kerak emas
+    
+    $dateText = trim($dateDiv->textContent); // Masalan: "11 Fevral 2026 | 14 Rajab 1447"
+    $todayDay = date('j'); // Bugungi kun raqami (masalan: 11)
+    
+    // Oddiy tekshiruv: Matn ichida bugungi kun raqami bormi?
+    // Aniqroq bo'lishi uchun Regex ishlatamiz (masalan, 1 ni 11 yoki 21 deb o'ylamasligi uchun)
+    if (!preg_match("/\b{$todayDay}\b/", $dateText)) {
+        // Agar sana matnida bugungi kun bo'lmasa, demak eski ma'lumot
         return null;
     }
+    // -----------------------------
+
+    $times = [];
+    $mapping = ["Tong" => "bomdod", "Quyosh" => "quyosh", "Peshin" => "peshin", "Asr" => "asr", "Shom" => "shom", "Xufton" => "hufton"];
     
+    $rows = $xpath->query("//div[@id='prayer']//div[contains(@class, 'flex-column')]");
+    foreach ($rows as $row) {
+        $divs = $xpath->query(".//div", $row);
+        if ($divs->length >= 2) {
+            $label = trim($divs->item(0)->textContent);
+            $time = trim($divs->item(1)->textContent);
+            if (isset($mapping[$label])) $times[$mapping[$label]] = $time;
+        }
+    }
+    
+    // Hijriy sanani ajratib olish
+    $sanaHijriy = "";
+    $parts = explode('|', $dateText);
+    if (count($parts) >= 2) $sanaHijriy = $this->cleanTextLatin(trim($parts[1]));
+    
+    if (isset($times['bomdod'])) {
+        return [
+            'manba' => 'Muslim.uz',
+            'sana_hijriy' => $sanaHijriy,
+            'hudud' => $this->getCityDisplayName($citySlug),
+            'bomdod' => $times['bomdod'],
+            'quyosh' => $times['quyosh'] ?? '',
+            'peshin' => $times['peshin'] ?? '',
+            'asr' => $times['asr'] ?? '',
+            'shom' => $times['shom'] ?? '',
+            'hufton' => $times['hufton'] ?? ''
+        ];
+    }
+    return null;
+}
     private function fetchIslomUz($citySlug) {
         $regionId = Cities::$islomUzIds[$citySlug] ?? null;
         if (!$regionId) return null;
@@ -123,45 +135,61 @@ class PrayerService {
         if (!$html) return null;
         
         $dom = new DOMDocument();
+        // Xatolarni o'chirish (@) va UTF-8 kodlash
         @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
         $xpath = new DOMXPath($dom);
         
-        // Validatsiya
+        // Validatsiya: Sahifa sarlavhasini tekshirish (noto'g'ri shahar ochilib qolmasligi uchun)
         $titleNode = $xpath->query("//h2[@class='region_name']")->item(0) ?? $xpath->query("//title")->item(0);
         if ($titleNode) {
             $pageTitle = mb_strtolower(trim($titleNode->textContent), 'UTF-8');
             $cityName = mb_strtolower(Cities::$citysNames[$citySlug] ?? '', 'UTF-8');
-            if (strpos($pageTitle, $citySlug) === false && strpos($pageTitle, $cityName) === false) {
-                if (strpos($pageTitle, 'toshkent') !== false && $citySlug !== 'toshkent') return null;
+            
+            // Agar sahifa sarlavhasida so'ralgan shahar nomi bo'lmasa, rad etamiz
+            // (Istisno: Toshkent uchun ba'zan umumiy nom bo'lishi mumkin, lekin tekshirgan ma'qul)
+            if ($citySlug !== 'toshkent' && strpos($pageTitle, $citySlug) === false && strpos($pageTitle, $cityName) === false) {
+                 return null;
             }
         }
         
-        $todayRow = $xpath->query("//tr[contains(@class, 'bugun')]")->item(0);
-        if (!$todayRow) {
-            $todayDay = date('j');
-            $rows = $xpath->query("//table[contains(@class, 'prayer_table')]//tbody//tr");
-            foreach ($rows as $row) {
-                $cols = $xpath->query(".//td", $row);
-                if ($cols->length > 1 && trim($cols->item(1)->textContent) == $todayDay) {
-                    $todayRow = $row;
-                    break;
+        // --- ASOSIY O'ZGARISH: SANANI QAT'IY TEKSHIRISH ---
+        $todayDay = date('j'); // Bugungi kun (masalan: 1, 15, 31) yetakchi nollarsiz
+        $targetRow = null;
+
+        // Jadval qatorlarini olamiz
+        $rows = $xpath->query("//table[contains(@class, 'prayer_table')]//tbody//tr");
+        
+        foreach ($rows as $row) {
+            $cols = $xpath->query(".//td", $row);
+            // 2-ustunda (index 1) kun sanasi bo'ladi
+            if ($cols->length > 1) {
+                $dayInRow = trim($cols->item(1)->textContent);
+                
+                // Agar jadvaldagi kun bugungi kunga teng bo'lsa, ushlab olamiz
+                if ($dayInRow == $todayDay) {
+                    $targetRow = $row;
+                    break; 
                 }
             }
         }
         
-        if (!$todayRow) return null;
-        $cols = $xpath->query(".//td", $todayRow);
+        // Agar bugungi sanaga mos qator topilmasa, demak saytda ma'lumot yo'q yoki eski
+        if (!$targetRow) return null;
+        
+        $cols = $xpath->query(".//td", $targetRow);
         if ($cols->length < 9) return null;
         
+        // Vaqtlarni olish
         $times = [
             'bomdod' => trim($cols->item(3)->textContent),
             'quyosh' => trim($cols->item(4)->textContent),
             'peshin' => trim($cols->item(5)->textContent),
-            'asr' => trim($cols->item(6)->textContent),
-            'shom' => trim($cols->item(7)->textContent),
+            'asr'    => trim($cols->item(6)->textContent),
+            'shom'   => trim($cols->item(7)->textContent),
             'hufton' => trim($cols->item(8)->textContent)
         ];
         
+        // Hijriy sanani olish
         $sanaHijriyLat = "";
         $dateDiv = $xpath->query("//div[contains(@class, 'date_time')]")->item(0);
         if ($dateDiv) {
@@ -172,60 +200,74 @@ class PrayerService {
         return [
             'manba' => 'Islom.uz',
             'sana_hijriy' => $sanaHijriyLat,
-            'hudud' => $this->getCityDisplayName($citySlug), // <-- O'ZGARDI
+            'hudud' => $this->getCityDisplayName($citySlug),
             'bomdod' => $times['bomdod'],
             'quyosh' => $times['quyosh'],
             'peshin' => $times['peshin'],
-            'asr' => $times['asr'],
-            'shom' => $times['shom'],
+            'asr'    => $times['asr'],
+            'shom'   => $times['shom'],
             'hufton' => $times['hufton']
         ];
     }
     
     private function fetchNamozvaqtiUz($citySlug) {
-        $slug = Cities::$citysSlugs[$citySlug] ?? null;
-        if (!$slug) return null;
+    $slug = Cities::$citysSlugs[$citySlug] ?? null;
+    if (!$slug) return null;
 
-        $html = $this->fetchUrl("https://namozvaqti.uz/shahar/{$slug}", false);
-        if (!$html) return null;
-        
-        $dom = new DOMDocument();
-        @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
-        $xpath = new DOMXPath($dom);
-        
-        $h1 = $xpath->query("//h1")->item(0);
-        if ($h1) {
-            $h1Text = mb_strtolower(trim($h1->textContent), 'UTF-8');
-            if (strpos($h1Text, $citySlug) === false && strpos($h1Text, 'topilmadi') !== false) return null;
-        }
+    $html = $this->fetchUrl("https://namozvaqti.uz/shahar/{$slug}", false);
+    if (!$html) return null;
+    
+    $dom = new DOMDocument();
+    @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+    $xpath = new DOMXPath($dom);
+    
+    // Validatsiya: Shahar nomi to'g'rimi?
+    $h1 = $xpath->query("//h1")->item(0);
+    if ($h1) {
+        $h1Text = mb_strtolower(trim($h1->textContent), 'UTF-8');
+        if (strpos($h1Text, $citySlug) === false && strpos($h1Text, 'topilmadi') !== false) return null;
+    }
 
-        $times = [];
-        $ids = ['bomdod', 'quyosh', 'peshin', 'asr', 'shom', 'hufton'];
-        foreach ($ids as $id) {
-            $element = $xpath->query("//*[@id='{$id}']")->item(0);
-            if (!$element) return null;
-            $times[$id] = trim($element->textContent);
-        }
-        
-        $sanaHijriy = "";
-        $dateElements = $xpath->query("//div[contains(@class, 'vil')]//strong");
-        if ($dateElements->length >= 2) {
-             $sanaHijriy = $this->cleanTextLatin(trim($dateElements->item(1)->textContent));
-        }
-        
-        return [
-            'manba' => 'Namozvaqti.uz',
-            'sana_hijriy' => $sanaHijriy,
-            'hudud' => $this->getCityDisplayName($citySlug), // <-- O'ZGARDI
-            'bomdod' => $times['bomdod'],
-            'quyosh' => $times['quyosh'],
-            'peshin' => $times['peshin'],
-            'asr' => $times['asr'],
-            'shom' => $times['shom'],
-            'hufton' => $times['hufton']
-        ];
+    // --- YANGI: SANA TEKSHIRUVI ---
+    // Sana odatda bunday turadi: "Toshkent shahri ... 11-fevral ..."
+    $dateInfo = $xpath->query("//div[contains(@class, 'vil')]")->item(0);
+    if (!$dateInfo) return null;
+
+    $dateText = $dateInfo->textContent;
+    $todayDay = date('j'); // 11
+    
+    // Matn ichida bugungi kun bormi?
+    if (!preg_match("/\b{$todayDay}\b/", $dateText)) {
+        return null; // Eski ma'lumot
+    }
+    // -----------------------------
+
+    $times = [];
+    $ids = ['bomdod', 'quyosh', 'peshin', 'asr', 'shom', 'hufton'];
+    foreach ($ids as $id) {
+        $element = $xpath->query("//*[@id='{$id}']")->item(0);
+        if (!$element) return null;
+        $times[$id] = trim($element->textContent);
     }
     
+    $sanaHijriy = "";
+    $dateElements = $xpath->query("//div[contains(@class, 'vil')]//strong");
+    if ($dateElements->length >= 2) {
+         $sanaHijriy = $this->cleanTextLatin(trim($dateElements->item(1)->textContent));
+    }
+    
+    return [
+        'manba' => 'Namozvaqti.uz',
+        'sana_hijriy' => $sanaHijriy,
+        'hudud' => $this->getCityDisplayName($citySlug),
+        'bomdod' => $times['bomdod'],
+        'quyosh' => $times['quyosh'],
+        'peshin' => $times['peshin'],
+        'asr' => $times['asr'],
+        'shom' => $times['shom'],
+        'hufton' => $times['hufton']
+    ];
+}
     // --- ASOSIY ---
     
     public function getPrayerTimes($citySlug = 'toshkent') {
