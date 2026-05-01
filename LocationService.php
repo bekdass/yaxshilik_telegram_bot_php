@@ -1,112 +1,121 @@
 <?php
-/**
- * Location Service
- * Handles location-based calculations (nearest city by meridian)
- * Ported from handlers/prayer.py
- */
 
 require_once __DIR__ . '/Cities.php';
 
 class LocationService {
-    
+
     /**
-     * Calculate distance between two coordinates using Haversine formula
-     * Replaces Python's geopy.distance.geodesic
-     * 
-     * @param float $lat1 Latitude of point 1
-     * @param float $lon1 Longitude of point 1
-     * @param float $lat2 Latitude of point 2
-     * @param float $lon2 Longitude of point 2
-     * @return float Distance in kilometers
-     */
-    public function haversineDistance($lat1, $lon1, $lat2, $lon2) {
-        $earthRadius = 6371; // Earth's radius in kilometers
-        
-        // Convert degrees to radians
-        $lat1Rad = deg2rad($lat1);
-        $lon1Rad = deg2rad($lon1);
-        $lat2Rad = deg2rad($lat2);
-        $lon2Rad = deg2rad($lon2);
-        
-        // Haversine formula
-        $dlat = $lat2Rad - $lat1Rad;
-        $dlon = $lon2Rad - $lon1Rad;
-        
-        $a = sin($dlat / 2) * sin($dlat / 2) +
-             cos($lat1Rad) * cos($lat2Rad) *
-             sin($dlon / 2) * sin($dlon / 2);
-        
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-        
-        $distance = $earthRadius * $c;
-        
-        return $distance;
-    }
-    
-    /**
-     * Find nearest city by MERIDIAN (longitude difference)
-     * Ported from find_nearest_city in handlers/prayer.py
-     * 
-     * This matches the Python logic exactly:
-     * - Primary criterion: meridian difference (longitude only)
-     * - Secondary: calculate actual distance for information
-     * 
-     * @param float $lat User's latitude
-     * @param float $lon User's longitude
-     * @return array ['city' => slug, 'distance' => km]
+     * Eng yaqin shaharni topish, masofani o'lchash va daqiqa farqini hisoblash
      */
     public function findNearestCity($lat, $lon) {
         $nearestCitySlug = 'toshkent';
-        $minDiff = PHP_FLOAT_MAX;
-        $finalDistKm = 0;
-        
+        $minDistKm = PHP_FLOAT_MAX; 
+        $nearestCityLon = 69.2401;
+
         foreach (Cities::$cities as $slug => $coords) {
             list($cityLat, $cityLon) = $coords;
-            
-            // 1. MERIDIAN DIFFERENCE (Only longitude difference)
-            $diffDeg = abs($lon - $cityLon);
-            
-            if ($diffDeg < $minDiff) {
-                $minDiff = $diffDeg;
+
+            // Masofani aniq kilometrda o'lchaymiz (Haversine)
+            $dist = $this->haversineDistance($lat, $lon, $cityLat, $cityLon);
+
+            if ($dist < $minDistKm) {
+                $minDistKm = $dist;
                 $nearestCitySlug = $slug;
-                
-                // Calculate actual distance for information purposes
-                $finalDistKm = $this->haversineDistance($lat, $lon, $cityLat, $cityLon);
+                $nearestCityLon = $cityLon;
             }
         }
+
+        // 1. Quyosh harakati farqi: (UserLon - CityLon) * 4
+        // Agar User sharqroqda (Lon kattaroq) bo'lsa, vaqt musbat (+) chiqadi
+        $diffMinutes = ($nearestCityLon - $lon ) * 4;
+        $roundedDiff = (int)round($diffMinutes);
+        $farq = 0; 
+        // Belgini aniqlash
+        if ($roundedDiff > 0) {
+            $farq = "+$roundedDiff";
+        } elseif ($roundedDiff < 0) {
+            $farq = "$roundedDiff";
+        } 
+
+        /**
+         * 2. RADIUS MANTIG'I (300 km):
+         * Agar foydalanuvchi eng yaqin shahardan 300 km dan uzoq bo'lsa, 
+         * bot "Global" rejimga (Aladhan API) o'tadi.
+         */
+        $isGlobal=false;
+        if($minDistKm > 300){
+            // 1. User yuborgan aniq nuqtani yaxlitlaymiz (Grid tizimi)
+            $latRound = round((float)$lat, 1);
+            $lonRound = round((float)$lon, 1);
+            
+            // 2. Kesh uchun unikal "ID" (Key) yasaymiz
+            $nearestCitySlug = "global_{$latRound}_{$lonRound}";
         
+            $isGlobal=true;
+            $farq=0;
+        }
+
         return [
-            'city' => $nearestCitySlug,
-            'distance' => (int)$finalDistKm
+            'city'      => $nearestCitySlug,
+            'farq'      => $farq,
+            'is_global' => $isGlobal,
+            'distance'  => (int)$minDistKm
         ];
     }
-    
+
     /**
-     * Alternative method: Find nearest city by actual distance
-     * This is NOT used in the Python code, but provided as an option
-     * 
-     * @param float $lat User's latitude
-     * @param float $lon User's longitude
-     * @return array ['city' => slug, 'distance' => km]
+     * Masofani kilometrda hisoblash uchun Haversine formulasi
      */
-    public function findNearestCityByDistance($lat, $lon) {
-        $nearestCitySlug = 'toshkent';
-        $minDistance = PHP_FLOAT_MAX;
-        
-        foreach (Cities::$cities as $slug => $coords) {
-            list($cityLat, $cityLon) = $coords;
-            
-            $distance = $this->haversineDistance($lat, $lon, $cityLat, $cityLon);
-            
-            if ($distance < $minDistance) {
-                $minDistance = $distance;
-                $nearestCitySlug = $slug;
-            }
-        }
-        
-        return [
-            'city' => $nearestCitySlug,
-            'distance' => (int)$minDistance
-        ];
+    public function haversineDistance($lat1, $lon1, $lat2, $lon2) {
+        $earthRadius = 6371;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+        $a = sin($dLat/2) * sin($dLat/2) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon/2) * sin($dLon/2);
+        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+        return $earthRadius * $c;
     }
+
+
+    
+    public function getLocation(string $cityName): ?array
+{
+    $url = "https://nominatim.openstreetmap.org/search"
+         . "?q=" . urlencode($cityName)
+         . "&format=json"
+         . "&limit=1";
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_HTTPHEADER => [
+            "User-Agent: NamozBot/1.0 (contact@example.com)" // majburiy
+        ]
+    ]);
+
+    $response = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        curl_close($ch);
+        return null;
+    }
+
+    curl_close($ch);
+
+    if (!$response) return null;
+
+    $data = json_decode($response, true);
+
+    if (!is_array($data) || empty($data[0])) {
+        return null;
+    }
+
+    return [
+        'city' => $data[0]['display_name'] ?? $cityName,
+        'lat'  => (float)$data[0]['lat'],
+        'lon'  => (float)$data[0]['lon'],
+    ];
+}
+
 }

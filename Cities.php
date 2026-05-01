@@ -1,121 +1,10 @@
 <?php
 
 class Cities {
-    
-    // 1. Islom.uz ID raqamlari (PrayerService uchun)
-    // Kichik shaharlarni eng yaqin katta shaharga bog'lab chiqdim, 
-    // shunda user "Chust" desa ham, bot Namangan vaqtini bo'lsa ham olib beradi (bo'sh qaytmaydi).
-    public static $islomUzIds = [
-        // Toshkent va viloyat
-        "toshkent"    => 27,
-        "chirchiq"    => 27,
-        "angren"      => 6,
-        "olmaliq"     => 27, // Aslida Toshkentga yaqin
-        "bekobod"     => 2,
-        "yangiyol"    => 27,
-        "parkent"     => 27,
-        "gazalkent"   => 27,
-        "boka"        => 27,
-        "piskent"     => 27,
-
-        // Andijon
-        "andijon"     => 1,
-        "xonobod"     => 20,
-        "shahrixon"   => 22,
-        "asaka"       => 3,
-        "xojaobod"    => 1, // Markazga yaqin
-        "marhamat"    => 1,
-        "paytug"      => 1,
-        "boston"      => 1,
-
-        // Namangan
-        "namangan"    => 15,
-        "chust"       => 8,
-        "chortoq"     => 15,
-        "kosonsoy"    => 15,
-        "uchqorgon"   => 15,
-        "pop1"        => 15, // Pop
-        "mingbuloq"   => 15,
-
-        // Farg'ona
-        "fargona"     => 37,
-        "qoqon"       => 26,
-        "margilon"    => 13,
-        "quva"        => 12,
-        "rishton"     => 17,
-        "oltiariq"    => 19,
-        "bogdod"      => 37,
-        "beshariq"    => 37,
-
-        // Sirdaryo
-        "guliston"    => 5,
-        "sirdaryo"    => 5,
-        "shirin"      => 5,
-        "yangiyer"    => 5,
-        "boyovut"     => 5,
-        "sardoba"     => 5,
-
-        // Jizzax
-        "jizzax"      => 9,
-        "zomin"       => 50,
-        "gallaorol"   => 9,
-        "dostlik"     => 9,
-        "forish"      => 9,
-
-        // Samarqand
-        "samarqand"   => 18,
-        "kuttaqorgon" => 11, // Kattaqo'rg'on
-        "kattaqorgon" => 11, 
-        "urgut"       => 18,
-        "bulungur"    => 18,
-        "jomboy"      => 18,
-        "ishtixon"    => 18,
-        "mirbozor"    => 18,
-
-        // Navoiy
-        "navoiy"      => 14,
-        "zarafshon"   => 24,
-        "uchquduq"    => 23,
-        "nurota"      => 14,
-        "konimex"     => 14,
-
-        // Buxoro
-        "buxoro"      => 4,
-        "gijduvon"    => 4,
-        "qorakol"     => 4,
-        "jondor"      => 4,
-        "gazli"       => 4,
-
-        // Qashqadaryo
-        "qarshi"      => 25,
-        "shahrisabz"  => 25,
-        "guzor"       => 25,
-        "muborak"     => 25,
-        "dehqonobod"  => 25,
-
-        // Surxondaryo
-        "termiz"      => 74,
-        "denov"       => 7,
-        "sherobod"    => 74,
-        "boysun"      => 74,
-        "shorchi"     => 74,
-
-        // Xorazm
-        "urganch"     => 78,
-        "xiva"        => 21,
-        "shovot"      => 78,
-        "xonqa"       => 78,
-        "hazorasp"    => 78,
-        "yangibozor"  => 78,
-
-        // Qoraqalpog'iston
-        "nukus"       => 16,
-        "qongirot"    => 16,
-        "moynoq"      => 16,
-        "tortkol"     => 16,
-        "taxtakopir"  => 16
+    public static $muslimUzcities = [
+        "toshkent" => "toshkent",
     ];
-
+  
     // 2. Namozvaqti.uz uchun sluglar
     public static $citysSlugs = [
         "toshkent" => "toshkent",
@@ -134,8 +23,11 @@ class Cities {
         "margilon" => "margilon",
         "qoqon" => "qoqon",
         "xiva" => "xiva",
+        "qongirot" => "qongirot",
     ];
-
+public static $slugAliases = [
+    'pop' => 'pop1',
+];
     // 3. Chiroyli nomlar (Validatsiya va Bot javobi uchun - MUHIM)
     public static $citysNames = [
         "toshkent"    => "Toshkent",
@@ -162,6 +54,7 @@ class Cities {
         "kosonsoy"    => "Kosonsoy",
         "uchqorgon"   => "Uchqo'rg'on",
         "pop1"        => "Pop",
+        "pop"        => "Pop",
         "mingbuloq"   => "Mingbuloq",
         "fargona"     => "Farg'ona",
         "qoqon"       => "Qo'qon",
@@ -253,7 +146,7 @@ class Cities {
         "chortoq" => [41.0667, 71.8167],
         "kosonsoy" => [41.2500, 71.5500],
         "uchqorgon" => [41.1167, 72.0833],
-        "pop1" => [40.8736, 71.1089],
+        "pop" => [40.8736, 71.1089],
         "mingbuloq" => [40.8333, 71.3833],
 
         // --- FARG'ONA VILOYATI ---
@@ -333,4 +226,251 @@ class Cities {
         "tortkol" => [41.5500, 61.0000],
         "taxtakopir" => [43.0167, 60.2833]
     ];
+    // 5. namoz-vaqti.uz uchun region sluglar
+
+public static $citysNames2 = 
+
+    [
+    "toshkent" => "toshkent",
+    "samarqand" => "samarqand",
+    "buxoro" => "buxoro",
+    "andijon" => "andijon",
+    "namangan" => "namangan",
+    "fargona" => "fargona",
+    "navoiy" => "navoiy",
+    "jizzax" => "jizzax",
+    "termiz" => "termiz",
+    "qarshi" => "qarshi",
+    "urganch" => "urganch",
+    "nukus" => "nukus",
+    "guliston" => "guliston",
+    "margilon" => "margilon",
+    "qoqon" => "qoqon",
+    "xiva" => "xiva",
+    "qongirot" => "qongirot",
+
+    // Toshkent viloyati
+    "nurafshon" => "nurafshon",
+    "angren" => "angren",
+    "bekobod" => "bekobod",
+    "chirchiq" => "chirchiq",
+    "ohangaron" => "ohangaron",
+    "olmaliq" => "olmaliq",
+    "yangiyol" => "yangiyol",
+    "boka" => "boka",
+    "bostanliq" => "bostanliq",
+    "chinaz" => "chinaz",
+    "oqqorgon" => "oqqorgon",
+    "parkent" => "parkent",
+    "piskent" => "piskent",
+    "qibray" => "qibray",
+    "quyi-chirchiq" => "quyi-chirchiq",
+    "orta-chirchiq" => "orta-chirchiq",
+    "yuqori-chirchiq" => "yuqori-chirchiq",
+    "zangiota" => "zangiota",
+    "toshkent-tumani" => "toshkent-tumani",
+
+    // Andijon
+    "xonobod" => "xonobod",
+    "asaka" => "asaka",
+    "baliqchi" => "baliqchi",
+    "boston" => "boston",
+    "buloqboshi" => "buloqboshi",
+    "izboskan" => "izboskan",
+    "jalaquduq" => "jalaquduq",
+    "marhamat" => "marhamat",
+    "oltinkol" => "oltinkol",
+    "paxtaobod" => "paxtaobod",
+    "qorgontepa" => "qorgontepa",
+    "shahrixon" => "shahrixon",
+    "xojayli" => "xojayli",
+
+    // Namangan
+    "chortoq" => "chortoq",
+    "chust" => "chust",
+    "kosonsoy" => "kosonsoy",
+    "mingbuloq" => "mingbuloq",
+    "norin" => "norin",
+    "pop"  => "pop",
+    "toraqorgon" => "toraqorgon",
+    "uchqorgon" => "uchqorgon",
+    "uychi" => "uychi",
+    "yangiqorgon" => "yangiqorgon",
+
+    // Farg‘ona
+    "quvasoy" => "quvasoy",
+    "beshariq" => "beshariq",
+    "bogdod" => "bogdod",
+    "buvayda" => "buvayda",
+    "dangara" => "dangara",
+    "furqat" => "furqat",
+    "ozbekiston" => "ozbekiston",
+    "oltariq" => "oltariq",
+    "qoshtepa" => "qoshtepa",
+    "quva" => "quva",
+    "rishton" => "rishton",
+    "sox" => "sox",
+    "toshloq" => "toshloq",
+    "uchkoprik" => "uchkoprik",
+    "yozyovon" => "yozyovon",
+
+    // Samarqand
+    "kattaqorgon" => "kattaqorgon",
+    "bulungur" => "bulungur",
+    "ishtixon" => "ishtixon",
+    "jomboy" => "jomboy",
+    "kattaqorgon-tumani" => "kattaqorgon-tumani",
+    "narpay" => "narpay",
+    "nurobod" => "nurobod",
+    "oqdaryo" => "oqdaryo",
+    "paxtachi" => "paxtachi",
+    "payariq" => "payariq",
+    "pastdargom" => "pastdargom",
+    "qoshrabot" => "qoshrabot",
+    "tayloq" => "tayloq",
+    "urgut" => "urgut",
+
+    // Jizzax
+    "arnasoy" => "arnasoy",
+    "baxmal" => "baxmal",
+    "dostlik" => "dostlik",
+    "forish" => "forish",
+    "gallaarol" => "gallaarol",
+    "mirzachol" => "mirzachol",
+    "paxtakor" => "paxtakor",
+    "zafarobod" => "zafarobod",
+    "zarbdor" => "zarbdor",
+    "zomin" => "zomin",
+
+    // Buxoro
+    "kogon" => "kogon",
+    "vobkent" => "vobkent",
+    "gijduvon" => "gijduvon",
+    "jondor" => "jondor",
+    "olot" => "olot",
+    "peshku" => "peshku",
+    "qorakol" => "qorakol",
+    "qorovulbozor" => "qorovulbozor",
+    "romitan" => "romitan",
+    "shofirkon" => "shofirkon",
+
+    // Navoiy
+    "zarafshon" => "zarafshon",
+    "karmana" => "karmana",
+    "qiziltepa" => "qiziltepa",
+    "xatirchi" => "xatirchi",
+    "navbahor" => "navbahor",
+    "nurota" => "nurota",
+    "konimex" => "konimex",
+    "tomdi" => "tomdi",
+    "uchquduq" => "uchquduq",
+
+    // Qashqadaryo
+    "shahrisabz" => "shahrisabz",
+    "chiroqchi" => "chiroqchi",
+    "dehqonobod" => "dehqonobod",
+    "guzor" => "guzor",
+    "kasbi" => "kasbi",
+    "kitob" => "kitob",
+    "koson" => "koson",
+    "mirishkor" => "mirishkor",
+    "muborak" => "muborak",
+    "nishon" => "nishon",
+    "qamashi" => "qamashi",
+    "yakkabog" => "yakkabog",
+
+    // Surxondaryo
+    "denov" => "denov",
+    "angor" => "angor",
+    "bandixon" => "bandixon",
+    "boysun" => "boysun",
+    "jarqorgon" => "jarqorgon",
+    "muzrabot" => "muzrabot",
+    "oltinsoy" => "oltinsoy",
+    "qiziriq" => "qiziriq",
+    "qumqorgon" => "qumqorgon",
+    "sariosiyo" => "sariosiyo",
+    "sherobod" => "sherobod",
+    "shorchi" => "shorchi",
+    "uzun" => "uzun",
+
+    // Sirdaryo
+    "shirin" => "shirin",
+    "yangiyer" => "yangiyer",
+    "boyovut" => "boyovut",
+    "mirzaobod" => "mirzaobod",
+    "oqoltin" => "oqoltin",
+    "sardoba" => "sardoba",
+    "sayxunobod" => "sayxunobod",
+    "sirdaryo" => "sirdaryo",
+    "xovos" => "xovos",
+
+    // Xorazm
+    "bogot" => "bogot",
+    "gurlan" => "gurlan",
+    "qoshkopir" => "qoshkopir",
+    "shovot" => "shovot",
+    "xazorasp" => "xazorasp",
+    "yangibozor" => "yangibozor",
+    "yangiariq" => "yangiariq",
+    "xonqa" => "xonqa",
+    "tuproqqala" => "tuproqqala",
+
+    // Qoraqalpog‘iston
+    "taxiatosh" => "taxiatosh",
+    "tortkol" => "tortkol",
+    "amudaryo" => "amudaryo",
+    "beruniy" => "beruniy",
+    "bozatov" => "bozatov",
+    "chimboy" => "chimboy",
+    "ellikqala" => "ellikqala",
+    "kegeyli" => "kegeyli",
+    "moynoq" => "moynoq",
+    "qanlikol" => "qanlikol",
+    "qoraozak" => "qoraozak",
+    "shumanay" => "shumanay",
+    "taxtakopir" => "taxtakopir",
+    "mangit" => "mangit",
+];
+
+public static function resolveCitySlug(string $input): ?string
+{
+    $q = trim($input);
+    if ($q === '') return null;
+
+    // 1) lower
+    $q = mb_strtolower($q, 'UTF-8');
+
+    // 2) apostrophe/quotes normalize
+    $q = str_replace(["ʼ", "‘", "’", "`"], "'", $q);
+
+    // 3) slug-like normalize (space -> -, remove extra)
+    $q = preg_replace('/\s+/u', '-', $q);
+    $q = preg_replace('/-+/u', '-', $q);
+
+    // A) direct slug match (eng tez)
+if (isset(self::$citysNames[$q])) return $q;
+
+// A2) agar user to‘g‘ri region slug yuborsa ham qabul qilamiz
+if (isset(self::$citysNames2[$q])) {
+    // bu holatda internal slug sifatida o‘sha q qaytsin (yoki alias map bo‘lsa shuni)
+    return $q;
+}
+
+    // B) display name match (Toshkent, Pop, Qo‘qon...)
+    foreach (self::$citysNames as $slug => $name) {
+        $n = mb_strtolower($name, 'UTF-8');
+        $n = str_replace(["ʼ", "‘", "’", "`"], "'", $n);
+        $n = preg_replace('/\s+/u', '-', $n);
+        $n = preg_replace('/-+/u', '-', $n);
+
+        if ($n === $q) return $slug;
+    }
+    // B2) citysNames2 keylaridan ham display ko‘rinish yasab tekshirish (ixtiyoriy)
+foreach (self::$citysNames2 as $internalSlug => $regionSlug) {
+    if ($internalSlug === $q) return $internalSlug;
+}
+
+    return null;
+}
 }
